@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+echo $*
+
+if [ $# -lt 3 ]
+then
+  echo "Wrong arguments (3 required)"
+  exit 1
+fi
+
+if [ "$3" == "FLAC_16" ]
+then
+  if [ $# -ne 4 ]
+  then
+    echo "Missing resample!"
+    exit 1
+  fi
+
+  set -x
+
+  sox "$1" -R -G -b 16 "$2" rate -v -L $4 dither
+  exit $?
+fi
+
+if [ $# -eq 3 ]
+then
+  decode="flac"
+  decode_args=("-dcs" "--" "$1")
+else
+  decode="sox"
+  decode_args=("$1" "-R" "-G" "-b" "16" "-t" "wav" "-" "rate" "-v" "-L" "$4" "dither")
+fi
+
+case $3 in
+  MP3_320)
+    encode_args=("-S" "-h" "-b" "320" "--ignore-tag-errors" "-" "$2")
+    ;;
+
+  MP3_V0)
+    encode_args=("-S" "-V" "0" "--vbr-new" "--ignore-tag-errors" "-" "$2")
+    ;;
+
+  *)
+    echo "Invalid target format!"
+    exit 1
+    ;;
+esac
+
+set -x
+$decode "${decode_args[@]}" | lame "${encode_args[@]}"
+exit $?

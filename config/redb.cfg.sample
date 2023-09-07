@@ -1,0 +1,13 @@
+[tracker]
+api_key = 
+input_dir = location of FLAC releases
+output_dir = location to transcode to
+torrent_dir = torrent watch dir
+spec_dir = location where to generate spectrograms
+spec_template = spectrograms report template
+spec_report = spectrograms report location (must share root with spec_dir)
+formats = FLAC_16,MP3_V0,MP3_320
+media = web,cd
+announce = announce template URL: {} will be replaced by passkey
+endpoint = API endpoint
+transcoder = ../bin/transcoder

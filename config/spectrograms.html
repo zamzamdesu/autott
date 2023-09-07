@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style type="text/css">
+        * {
+            box-sizing: border-box;
+            font-family: Verdana, Geneva, Tahoma, sans-serif;
+        }
+
+        body {
+            max-width: 100%;
+            margin: auto;
+        }
+
+        .slider-wrapper {
+            margin: 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .slides-container {
+            height: calc(100vh - 2rem);
+            width: 100%;
+            display: flex;
+            overflow: scroll;
+            scroll-behavior: smooth;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .slide-arrow {
+            position: absolute;
+            display: flex;
+            top: 0;
+            bottom: 0;
+            margin: auto;
+            height: 4rem;
+            background-color: white;
+            border: none;
+            width: 2rem;
+            font-size: 3rem;
+            padding: 0;
+            cursor: pointer;
+            opacity: 0.5;
+            transition: opacity 100ms;
+        }
+
+        .slide-arrow:hover,
+        .slide-arrow:focus {
+            opacity: 1;
+        }
+
+        #slide-arrow-prev {
+            left: 0;
+            padding-left: 0.25rem;
+            border-radius: 0 2rem 2rem 0;
+        }
+
+        #slide-arrow-next {
+            right: 0;
+            padding-left: 0.75rem;
+            border-radius: 2rem 0 0 2rem;
+        }
+
+        .slide {
+            width: 100%;
+            height: 100%;
+            flex: 1 0 100%;
+        }
+
+        .slide img {
+            max-width: 100%;
+        }
+
+        .slide h1 {
+            text-align: center;
+            font-size: 14pt;
+        }
+
+        .slide h2 {
+            text-align: center;
+            font-size: 12pt;
+        }
+
+        .valid {
+            background-color: green;
+            color: whitesmoke;
+        }
+
+        footer {
+            padding: 1em;
+            text-align: center;
+            background-color: #FFDFB9;
+        }
+
+        footer a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        footer .heart {
+            color: #DC143C;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="slider-wrapper">
+        <button class="slide-arrow" id="slide-arrow-prev">
+            &#8249;
+        </button>
+        <button class="slide-arrow" id="slide-arrow-next">
+            &#8250;
+        </button>
+        <ul class="slides-container" id="slides-container">
+            {% for s in spectrograms %}
+            <li class="slide{% if s.valid_logs > 0 %} valid{% endif %}">
+                <h1>{{ s.files[0].parent.name }}</h1>
+                <h2>{{ s.files[0].name }}</h2>
+                <a href="{{ s.files[1].relative_to(root) }}">
+                    <img src="{{ s.files[0].relative_to(root) }}" />
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    <script type="application/javascript">
+        const slidesContainer = document.getElementById("slides-container");
+        const slide = document.querySelector(".slide");
+        const goLeft = () => {
+            slidesContainer.scrollLeft -= slide.clientWidth;
+        };
+        const goRight = () => {
+            slidesContainer.scrollLeft += slide.clientWidth;
+        }
+
+        document.getElementById("slide-arrow-next").addEventListener("click", goRight);
+        document.getElementById("slide-arrow-prev").addEventListener("click", goLeft);
+        window.onkeydown = (e) => {
+            if (e.key === "ArrowLeft") {
+                goLeft();
+
+                return false;
+            } else if (e.key === "ArrowRight") {
+                goRight();
+
+                return false;
+            }
+        }
+    </script>
+</body>
+
+</html>
