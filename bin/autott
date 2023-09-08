@@ -4,6 +4,6 @@ root="`dirname $0`/.."
 
 . $root/.venv/bin/activate
 
-python3 $root/src/redb.py "$@"
+python3 $root/src/main.py "$@"
 
 exit $?
