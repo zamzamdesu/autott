@@ -69,6 +69,10 @@ def _build_transcode_group(tracker, group_id, torrent_id, config):
     created_time = isoparse(torrent['time'])
     format = Format.from_encoding(torrent['encoding'])
 
+    if torrent['remasterYear'] is not None and torrent['remasterYear'] == 0:
+        config.cache.bad(group_id, torrent_id, f"Torrent is unkown release: {torrent_name}")
+        return
+
     if torrent['lossyMasterApproved'] or torrent['lossyWebApproved']:
         config.cache.bad(group_id, torrent_id, f"Torrent is lossy master: {torrent_name}")
         return
