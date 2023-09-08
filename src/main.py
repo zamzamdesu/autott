@@ -62,7 +62,7 @@ def _prepare_spectrograms_dir(config):
 
 def _build_config():
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter, prog='redb')
-    parser.add_argument('--config', help='the location of the configuration file', default=_expand_path(_ROOT_FOLDER, 'config/redb.cfg'), type=Path)
+    parser.add_argument('--config', help='the location of the configuration file', default=_expand_path(_ROOT_FOLDER, 'config/autott.cfg'), type=Path)
     parser.add_argument('-v', '--verbose', help="Verbose mode", action='count', default=0)
     parser.add_argument('--fl-tokens', help="Set available FL tokens", type=int, default=0)
     parser.add_argument('--parallel', help='number of parallel transcodes', default=None, type=int)
