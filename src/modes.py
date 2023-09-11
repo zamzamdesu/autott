@@ -310,12 +310,12 @@ def transcode_online(config):
     return 0
 
 def _cache_show_entry(config, id: int):
-    logging.info(f"Entry {type}: {config.cache.items.get(type)}")
+    logging.info(f"Entry {id}: {config.cache.items.get(id)}")
 
 def cache_show(config):
-    if config.type is None or 'errors' in config.type:
+    if len(config.type) == 0 or 'errors' in config.type:
         for id, entry in config.cache.items.items():
-            if config.type is None or entry.error:
+            if len(config.type) == 0 or entry.error:
                 _cache_show_entry(config, id)
 
     for type in config.type:
