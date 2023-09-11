@@ -319,9 +319,9 @@ def cache_show(config):
                 _cache_show_entry(config, id)
 
     for type in config.type:
-        if type != 'errors':
+        if type.isdecimal():
             _cache_show_entry(config, int(type))
-        else:
+        elif type != 'errors':
             raise ValueError(f"Invalid type: {type}")
 
     return 0
@@ -333,10 +333,10 @@ def cache_clear(config):
         config.cache.clear(errors=True)
 
     for type in config.type:
-        if type != 'errors':
+        if type.isdecimal():
             logging.info(f"Clearing error {type} from cache...")
             config.cache.clear(id=int(type))
-        else:
+        elif type != 'errors':
             raise ValueError(f"Invalid type: {type}")
 
     return 0
