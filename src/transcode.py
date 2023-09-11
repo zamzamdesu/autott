@@ -14,7 +14,7 @@ import music
 import log_checker
 
 from music import Spectrogram
-from tracker import Format
+from tracker import Format, format_size
 
 class Resample(Enum):
     KEEP = 0
@@ -197,7 +197,7 @@ class Transcode:
         total_size = sum(f.stat().st_size for f in files)
 
         if total_size > ADD_FILES_MAX_SIZE:
-            logging.warning(f"Additional files are too large: {total_size} bytes")
+            logging.warning(f"Additional files are large: {format_size(total_size)}")
 
         for file in files:
             stem = file.stem

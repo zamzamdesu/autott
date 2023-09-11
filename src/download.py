@@ -7,7 +7,7 @@ from pathlib import Path
 from functools import reduce
 from typing import Iterable, TextIO, List
 
-from tracker import Tracker, Format
+from tracker import Tracker, Format, format_size
 
 _GROUPING_ATTRIBUTES = ['remasterYear', 'remasterTitle', 'remasterRecordLabel', 'remasterCatalogueNumber']
 _MEDIA_ORDER = ['CD', 'Vinyl', 'SACD', 'WEB']
@@ -27,19 +27,11 @@ def _group_filter_torrents(torrents):
 
     return grouped
 
-def _format_size(num, suffix="B"):
-    for unit in ("", "Ki", "Mi", "Gi", "Ti", "Pi", "Ei", "Zi"):
-        if abs(num) < 1024.0:
-            return f"{num:3.1f} {unit}{suffix}"
-        num /= 1024.0
-
-    return f"{num:.1f} Yi{suffix}"
-
 def _get_torrent_id(torrent):
     return torrent.get('torrentid', torrent.get('id'))
 
 def _format_torrent(tracker, group, torrent):
-    return f"{group['name']} - ({torrent['remasterYear']} / {torrent['remasterTitle']} / {torrent['remasterRecordLabel']} / {torrent['remasterCatalogueNumber']}) - {torrent['encoding']} {torrent['media']} {_format_size(torrent['size'])} {tracker.get_url(group['id'], _get_torrent_id(torrent))}"
+    return f"{group['name']} - ({torrent['remasterYear']} / {torrent['remasterTitle']} / {torrent['remasterRecordLabel']} / {torrent['remasterCatalogueNumber']}) - {torrent['encoding']} {torrent['media']} {format_size(torrent['size'])} {tracker.get_url(group['id'], _get_torrent_id(torrent))}"
 
 def _filter_torrents(tracker, torrents):
     while True:
@@ -117,7 +109,7 @@ def _download(torrents: Iterable[int], tracker: Tracker, fl_tokens: int, watch_d
             downloads.append(torrent)
 
     logging.info(f"Total FL tokens: {len(fl_downloads)}")
-    logging.info(f"Total downloads: {_format_size(reduce(lambda s, t: s + t['size'], downloads, 9))}")
+    logging.info(f"Total downloads: {format_size(reduce(lambda s, t: s + t['size'], downloads, 9))}")
 
     if input("Continue? (y/n) ") != 'y':
         return
