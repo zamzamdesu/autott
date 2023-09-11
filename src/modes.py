@@ -236,7 +236,7 @@ def transcode_online(config):
 
                 transcode_groups.append(transcode_group)
 
-                if config.batch > 0:        
+                if config.batch is not None:        
                     logging.info(f"Transcode {len(processing)}/{config.batch}: {transcode_group.name}")
 
                     if len(processing) == config.batch:
