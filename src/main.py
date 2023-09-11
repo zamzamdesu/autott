@@ -94,9 +94,16 @@ def _build_config():
     test.add_argument('folder', nargs='+', help='folders to test', type=Path)
     test.set_defaults(run=modes.test)
 
-    cache = subparsers.add_parser('cache-clear', aliases=['cc'])
-    cache.add_argument('type', nargs='+', help="one or more 'errors' to clear all errors, or a cache id to clear a specific entry")
-    cache.set_defaults(run=modes.cache_clear)  
+    cache = subparsers.add_parser('cache', aliases=['ca'])
+    cache_subparsers = cache.add_subparsers()
+
+    cache_clear = cache_subparsers.add_parser('clear', aliases=['cl'])
+    cache_clear.add_argument('type', nargs='+', help="one or more a cache id to clear specific entries, or 'errors' to clear all errors")
+    cache_clear.set_defaults(run=modes.cache_clear)  
+    
+    cache_show = cache_subparsers.add_parser('show', aliases=['sh'])
+    cache_show.add_argument('type', nargs='*', help="emtpy to show all cache, one or more a cache id to show specific entries, or 'errors' to show all errors")
+    cache_show.set_defaults(run=modes.cache_show)  
 
     args = parser.parse_args()
 

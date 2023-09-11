@@ -309,12 +309,31 @@ def transcode_online(config):
 
     return 0
 
-def cache_clear(config):
+def _cache_show_entry(config, id: int):
+    logging.info(f"Entry {type}: {config.cache.items.get(type)}")
+
+def cache_show(config):
+    if config.type is None or 'errors' in config.type:
+        for id, entry in config.cache.items.items():
+            if config.type is None or entry.error:
+                _cache_show_entry(config, id)
+
     for type in config.type:
-        if type == 'errors':
-            logging.info("Clearing errors from cache...")
-            config.cache.clear(errors=True)
-        elif type.isdecimal():
+        if type != 'errors':
+            _cache_show_entry(config, int(type))
+        else:
+            raise ValueError(f"Invalid type: {type}")
+
+    return 0
+
+
+def cache_clear(config):
+    if 'errors' in config.type:
+        logging.info("Clearing errors from cache...")
+        config.cache.clear(errors=True)
+
+    for type in config.type:
+        if type != 'errors':
             logging.info(f"Clearing error {type} from cache...")
             config.cache.clear(id=int(type))
         else:

@@ -15,36 +15,36 @@ class Cache:
 
         try:
             with open(self._path, 'rb') as fd: 
-                self._cache = pickle.load(fd)
+                self.items = pickle.load(fd)
         except:
-            self._cache = dict()
+            self.items = dict()
 
     def _save(self):
         if self._path is None:
             return
 
-        self._path.write_bytes(pickle.dumps(self._cache))
+        self._path.write_bytes(pickle.dumps(self.items))
 
     def complete(self, group_id: int, torrent_id: int):
-        self._cache[torrent_id] = CacheEntry(group_id, None, False, None)
+        self.items[torrent_id] = CacheEntry(group_id, None, False, None)
         self._save()
 
     def bad(self, group_id: int, torrent_id: int, error: str):
         logging.debug(error)
 
-        self._cache[torrent_id] = CacheEntry(group_id, error, False, None)
+        self.items[torrent_id] = CacheEntry(group_id, error, False, None)
         self._save()
 
     def error(self, group_id: int, torrent_id: int, error: str, retry_callback = lambda: True):
         logging.exception(error)
 
-        self._cache[torrent_id] = CacheEntry(group_id, error, retry_callback(), None)
+        self.items[torrent_id] = CacheEntry(group_id, error, retry_callback(), None)
         self._save()
 
     def retry(self, group_id: int, torrent_id: int, created, error: str):
         logging.debug(error)
 
-        self._cache[torrent_id] = CacheEntry(group_id, error, True, created)
+        self.items[torrent_id] = CacheEntry(group_id, error, True, created)
         self._save()
 
     def _should_try(self, cache, cutoff):
@@ -53,15 +53,15 @@ class Cache:
 
     def clear(self, id = None, errors = False):
         if errors:
-            self._cache = { torrent_id: cache for torrent_id, cache in self._cache.items() if not cache.error}
+            self.items = { torrent_id: cache for torrent_id, cache in self.items.items() if not cache.error}
 
         if id is not None:
-            self._cache.pop(id)
+            self.items.pop(id)
 
         self._save()
 
     def should_try(self, torrent_id, cutoff):
-        cache = self._cache.get(torrent_id)
+        cache = self.items.get(torrent_id)
 
         if cache is None:
             return True
@@ -69,6 +69,6 @@ class Cache:
         return self._should_try(cache, cutoff)
 
     def get_cached(self, cutoff):
-        for torrent_id, cache in self._cache.items():
+        for torrent_id, cache in self.items.items():
             if self._should_try(cache, cutoff):
                 yield cache.group_id, torrent_id
