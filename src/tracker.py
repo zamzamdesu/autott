@@ -52,10 +52,10 @@ class Format(Enum):
     FLAC_16 = 1, 'FLAC', 'Lossless', '.flac', True
     MP3_320 = 2, 'MP3', '320', '.mp3', False
     MP3_V0 = 3, 'MP3', 'V0 (VBR)', '.mp3', False
-    MP3_V2 = 3, 'MP3', 'V2 (VBR)', '.mp3', False
-    MP3_256 = 4, 'MP3', '256', '.mp3', False
-    MP3_192 = 5, 'MP3', '192', '.mp3', False
-    MP3_96 = 6, 'MP3', '96', '.mp3', False
+    MP3_V2 = 4, 'MP3', 'V2 (VBR)', '.mp3', False
+    MP3_256 = 5, 'MP3', '256', '.mp3', False
+    MP3_192 = 6, 'MP3', '192', '.mp3', False
+    MP3_96 = 7, 'MP3', '96', '.mp3', False
 
     def __new__(cls, value, base_format, encoding, ext, lossless):
         obj = object.__new__(cls)
