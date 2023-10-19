@@ -141,7 +141,7 @@ def _build_transcode_group(tracker, group_id, torrent_id, config):
                 description += f"\n\n[b]Resample to {resample} Hz[/b]"
 
                 for track in tracks:
-                    description += f"\n  {track.output.name}"
+                    description += f"\n  {track.input.name}"
 
             if some_not_resampled:
                 description += "\n\nOther tracks were not resampled"
