@@ -261,6 +261,9 @@ class Tracker:
         
         return group_id, int(torrent_id.group(1))
 
+    def get_torrent_grouping(self, torrent):
+        return list(torrent[attr] for attr in _GROUPING_ATTRIBUTES)
+
     def get_possible_transcodes(self, group, torrent, other_torrents, formats):
         if re.search(r'pre[- ]?emphasi(s(ed)?|zed)', torrent['remasterTitle'] + torrent['description'], flags=re.IGNORECASE) is not None:
             return set()

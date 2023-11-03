@@ -59,8 +59,15 @@ def _error_check_retry(config, group, torrent, error):
 def _key_resample(track):
     return track.resample.value
 
-def _build_transcode_group(tracker, group_id, torrent_id, config):
+def _build_transcode_group(processing, tracker, group_id, torrent_id, config):
     group, torrent, other_torrents = tracker.get_torrent_group(group_id=group_id, torrent_id=torrent_id)
+
+    torrent_unique_id = [torrent_id] + tracker.get_torrent_grouping(torrent)
+
+    if torrent_unique_id in processing:
+        return
+    else:
+        processing.add(torrent_unique_id)
 
     if group_id is None:
         group_id = group['id']
@@ -218,16 +225,13 @@ def transcode_online(config):
         processing = set()
         
         for group_id, torrent_id in candidates:
-            if torrent_id in processing:
-                continue
-
             try:
                 if not config.cache.should_try(torrent_id, config.created_cutoff):
                     logging.debug(f"Ignored by cache: {torrent_id}")
 
                     continue
 
-                transcode_group = _build_transcode_group(tracker, group_id, torrent_id, config) 
+                transcode_group = _build_transcode_group(processing, tracker, group_id, torrent_id, config) 
 
                 if transcode_group is None:
                     continue
