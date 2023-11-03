@@ -66,8 +66,6 @@ def _build_transcode_group(processing, tracker, group_id, torrent_id, config):
 
     if torrent_unique_id in processing:
         return
-    else:
-        processing.add(torrent_unique_id)
 
     if group_id is None:
         group_id = group['id']
@@ -160,6 +158,8 @@ def _build_transcode_group(processing, tracker, group_id, torrent_id, config):
 
         description += f"\nLog checksum was valid"
 
+    processing.add(torrent_unique_id)
+
     return TranscodeGroup(torrent_name, group, torrent, transcode, description)
 
 def _build_transcode_remove_prompt(transcode_groups):
@@ -235,8 +235,6 @@ def transcode_online(config):
 
                 if transcode_group is None:
                     continue
-
-                processing.add(torrent_id)
 
                 transcode_groups.append(transcode_group)
 
