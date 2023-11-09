@@ -147,7 +147,7 @@ def _validate_track(track: Path, input_dir: Path, spec_dir: Union[Path, None]):
     try:
         music.test_flac(track)
     except subprocess.CalledProcessError as e:
-        raise TranscodeException(f"Bad source FLAC: {track}", e)
+        raise TranscodeException(f"FLAC test for '{track}' failed with: {e.output}")
     
     return metadata, spectrograms
 
