@@ -208,7 +208,10 @@ def generate_spectrogram_report(template: Path, output: Path, spectrograms: Iter
     output.write_text(env.get_template(template.name).render(root=output.parent, spectrograms=spectrograms))
 
 def test_flac(file: Path):
-    subprocess.check_output(args=['flac', '-wt', file], stderr=subprocess.STDOUT, text=True)
+    try:
+        subprocess.check_output(args=['flac', '-wt', file], stderr=subprocess.STDOUT, text=True)
+    except subprocess.CalledProcessError as e:
+        raise IOError(f"FLAC test failed with:\n{e.output}")
 
 for key, frameid in {
     'albumartist': 'TPE2',
