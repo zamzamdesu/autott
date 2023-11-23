@@ -62,7 +62,7 @@ def _key_resample(track):
 def _build_transcode_group(processing, tracker, group_id, torrent_id, config):
     group, torrent, other_torrents = tracker.get_torrent_group(group_id=group_id, torrent_id=torrent_id)
 
-    torrent_unique_id = "##".join([str(torrent_id)] + tracker.get_torrent_grouping(torrent))
+    torrent_unique_id = "##".join([str(group_id)] + tracker.get_torrent_grouping(torrent))
 
     if torrent_unique_id in processing:
         return
