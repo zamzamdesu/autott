@@ -60,7 +60,10 @@ def _key_resample(track):
     return track.resample.value
 
 def _build_transcode_group(processing, tracker, group_id, torrent_id, config):
-    group, torrent, other_torrents = tracker.get_torrent_group(group_id=group_id, torrent_id=torrent_id)
+    try:
+        group, torrent, other_torrents = tracker.get_torrent_group(group_id=group_id, torrent_id=torrent_id)
+    except TrackerException as e:
+        config.cache.error(group_id, torrent_id, f"Invalid torrent: {e}", lambda: False)
 
     torrent_unique_id = "##".join([str(group_id)] + tracker.get_torrent_grouping(torrent))
 

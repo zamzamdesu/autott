@@ -187,7 +187,10 @@ class Tracker:
         group = self._ajax_get('torrentgroup', id=group_id)
 
         if torrent is None:
-            torrent = next(t for t in group['torrents'] if t['id'] == torrent_id)
+            try:
+                torrent = next(t for t in group['torrents'] if t['id'] == torrent_id)
+            except StopIteration:
+                raise TrackerException(f"Torrent {torrent_id} does not exist in group {group_id}")
         else:
             torrent = torrent['torrent']
 
