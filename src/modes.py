@@ -77,6 +77,7 @@ def _build_transcode_group(processing, tracker, group_id, torrent_id, config):
     created_time = isoparse(torrent['time'])
     format = Format.from_encoding(torrent['encoding'])
 
+
     if torrent['remasterYear'] is not None and torrent['remasterYear'] == 0:
         config.cache.bad(group_id, torrent_id, f"Torrent is unkown release: {torrent_name}")
         return
@@ -134,6 +135,14 @@ def _build_transcode_group(processing, tracker, group_id, torrent_id, config):
     else:
         if format != Format.FLAC_24:
             logging.warning(f"Source files are actually 24 bits: {torrent_name}")
+
+            needed_formats.add(Format.FLAC_16)
+
+            try:
+                transcode = _prepare_transcode(group, torrent, config.spec_dir, source_dir, config.output_dir, needed_formats)
+            except:
+                _error_check_retry(config, group, torrent, f"Failed to prepare transcode after adding FLAC transcode: {torrent_name}")
+                raise
 
         if transcode.global_resample is None:
             logging.warning(f"Source files have inconsistent sample: {torrent_name}")
