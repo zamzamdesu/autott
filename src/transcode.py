@@ -103,7 +103,7 @@ def _transcode_one(transcoder: str, track: Track, transcoded: TranscodedTrack):
             args.append(str(track.resample.value))
 
         if transcoded.output_format == Format.FLAC_16 and track.resample == Resample.KEEP:
-            logging.warning(f"Source file is already 16 bits and will be copied as-is: {track.input}")
+            logging.warning(f"Source file is already 16-bit and will be copied as-is: {track.input}")
 
             shutil.copyfile(track.input, transcoded.output)
 

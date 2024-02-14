@@ -130,11 +130,11 @@ def _build_transcode_group(processing, tracker, group_id, torrent_id, config):
 
     if transcode.global_resample == Resample.KEEP:
         if format == Format.FLAC_24:
-            _error_check_retry(config, group, torrent, f"Torrent is supposed to be 24-bits but no resample needed: {torrent_name}")
+            _error_check_retry(config, group, torrent, f"Torrent is supposed to be 24-bit but no resample needed: {torrent_name}")
             return
     else:
         if format != Format.FLAC_24:
-            logging.warning(f"Source files are actually 24 bits: {torrent_name}")
+            logging.warning(f"Source files are actually 24-bit: {torrent_name}")
 
             needed_formats.add(Format.FLAC_16)
 
@@ -155,7 +155,7 @@ def _build_transcode_group(processing, tracker, group_id, torrent_id, config):
                     some_not_resampled = True
                     continue
 
-                description += f"\n\n[b]Resampled to 16 bits ({resample} Hz)[/b]"
+                description += f"\n\n[b]Resampled to 16-bit ({resample} Hz)[/b]"
 
                 for track in tracks:
                     description += f"\n  {track.input.name}"
@@ -163,7 +163,7 @@ def _build_transcode_group(processing, tracker, group_id, torrent_id, config):
             if some_not_resampled:
                 description += "\n\nOther tracks were not resampled"
         elif transcode.global_resample != Resample.KEEP:
-            description += f"\nAll tracks were resampled to 16 bits ({transcode.global_resample.value} Hz)"
+            description += f"\nAll tracks were resampled to 16-bit ({transcode.global_resample.value} Hz)"
 
     if transcode.valid_logs > 0:
         logging.info(f"Logs are valid: {torrent_name}")
