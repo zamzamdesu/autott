@@ -9,6 +9,7 @@ from dateutil.parser import isoparse
 from itertools import groupby, chain
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from subprocess import CalledProcessError
 
 import music
 import download
@@ -382,8 +383,8 @@ def _extended_test(config, path):
     
     try:
         raw = subprocess.check_output(str(config.extended_validation).format(path), shell=True, stderr=subprocess.STDOUT, text=True)
-    except Exception as e:
-        raise ValidateException("Extended validator failed!", e)
+    except CalledProcessError as e:
+        raise ValidateException("Extended validator failed with code {e.returncode}:\n{e.output}", e)
 
     # Hack as JSON is mixed on stdout with an initial log message
     if raw[0] != '{':
