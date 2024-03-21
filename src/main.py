@@ -121,6 +121,7 @@ def _build_config():
         spec_report=_expand_path(config_root, section.get('spec_report')),
         torrent_dir=_expand_path(config_root, section.get('torrent_dir')),
         transcoder=_expand_path(config_root, section.get('transcoder')),
+        extended_validation=_expand_path(config_root, section.get('extended_validation')),
         allowed_formats=set(getattr(Format, f) for f in section['formats'].split(',')),
         allowed_media=set(section['media'].split(',')),
         created_cutoff=datetime.now() - timedelta(days=int(section['min_days'])) if 'min_days' in section else None,

@@ -1,5 +1,7 @@
 import logging
 import shutil
+import subprocess
+import json
 
 from collections import namedtuple
 from typing import List
@@ -13,6 +15,9 @@ import download
 
 from transcode import Transcode, NamingException, Resample
 from tracker import Format, Tracker, TrackerException, MEDIA
+
+class ValidateException(Exception):
+    pass
 
 TranscodeGroup = namedtuple('TranscodeGroup', 'name group torrent transcode description')
 
@@ -77,7 +82,6 @@ def _build_transcode_group(processing, tracker, group_id, torrent_id, config):
     created_time = isoparse(torrent['time'])
     format = Format.from_encoding(torrent['encoding'])
 
-
     if torrent['remasterYear'] is not None and torrent['remasterYear'] == 0:
         config.cache.bad(group_id, torrent_id, f"Torrent is unkown release: {torrent_name}")
         return
@@ -119,6 +123,8 @@ def _build_transcode_group(processing, tracker, group_id, torrent_id, config):
         return
 
     logging.info(f"Preparing: {torrent_name}")
+
+    _extended_test(config, source_dir)
 
     try:
         transcode = _prepare_transcode(group, torrent, config.spec_dir, source_dir, config.output_dir, needed_formats)
@@ -359,6 +365,8 @@ def _test_tracks(config):
     for dir in config.folder:
         logging.info(f"Testing: {dir}")
 
+        _extended_test(config, dir)
+
         transcode = Transcode(dir, config.spec_dir, {})
 
         if transcode.global_resample is None:
@@ -367,6 +375,38 @@ def _test_tracks(config):
             logging.info(f"Validation successful! Global resample: {transcode.global_resample.name}")
 
         yield from transcode.tracks
+
+def _extended_test(config, path):
+    if config.extended_validation is None:
+        return
+    
+    try:
+        raw = subprocess.check_output(str(config.extended_validation).format(path), shell=True, stderr=subprocess.STDOUT, text=True)
+    except Exception as e:
+        raise ValidateException("Extended validator failed!", e)
+
+    # Hack as JSON is mixed on stdout with an initial log message
+    if raw[0] != '{':
+        raw = raw[raw.index('{'):]
+
+    try:
+        analysis = json.loads(raw)
+    except Exception as e:
+        raise ValidateException(f"Extended validation output is invalid:\n\n{raw}", e)
+
+    errors = ""
+
+    for check in analysis['checks']:
+        if check['result'] == 0:
+            continue
+
+        if check['level'] == 1:
+            logging.warning(check['result_comment'])
+        else:
+            errors += f"\t- {check['result_comment']}\n"
+    
+    if len(errors) > 0:
+        raise ValidateException(f"Validation failed:\n{errors}")
 
 def test(config):
     try:
