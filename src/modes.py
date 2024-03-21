@@ -384,7 +384,7 @@ def _extended_test(config, path):
     try:
         raw = subprocess.check_output(str(config.extended_validation).format(path), shell=True, stderr=subprocess.STDOUT, text=True)
     except CalledProcessError as e:
-        raise ValidateException("Extended validator failed with code {e.returncode}:\n{e.output}", e)
+        raise ValidateException(f"Extended validator failed with code {e.returncode}:\n{e.output}", e)
 
     # Hack as JSON is mixed on stdout with an initial log message
     if raw[0] != '{':
