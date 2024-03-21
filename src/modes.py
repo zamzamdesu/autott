@@ -378,11 +378,11 @@ def _test_tracks(config):
         yield from transcode.tracks
 
 def _extended_test(config, path):
-    if config.extended_validation is None:
+    if config.extended_validator is None:
         return
     
     try:
-        raw = subprocess.check_output(str(config.extended_validation).format(path), shell=True, stderr=subprocess.STDOUT, text=True)
+        raw = subprocess.check_output(args=[config.extended_validator] + config.extended_validator_args + [path], stderr=subprocess.STDOUT, text=True)
     except CalledProcessError as e:
         raise ValidateException(f"Extended validator failed with code {e.returncode}:\n{e.output}", e)
 
