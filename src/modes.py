@@ -407,7 +407,10 @@ def _extended_test(config, path):
             errors += f"\t- {check['result_comment']}\n"
     
     if len(errors) > 0:
-        raise ValidateException(f"Validation failed:\n{errors}")
+        logging.error(f"Validation failed:\n{errors}")
+
+        if input("Ignore (y/n)? ") != 'y':
+            raise ValidateException(f"Extended validation failed!")
 
 def test(config):
     try:
