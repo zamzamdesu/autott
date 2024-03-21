@@ -72,7 +72,7 @@ def check_tags(fd, check_tracknumber_format=True):
         elif any(len(t.strip()) == 0 for t in info[tag]):
             raise TaggingException(f'File has a blank {tag} tag: {info[tag]}')
 
-    if 'MQAENCODER' in info.tags or 'MQA' in info.tags.get('COMMENT'):
+    if 'MQAENCODER' in info.tags or ('COMMENT' in info.tags and 'MQA' in info.tags['COMMENT']):
         raise TaggingException(f"MQA encoded: {info.tags.get('MQAENCODER')} {info.tags.get('COMMENT')}")
 
     tracknumber = info['tracknumber'][0]
