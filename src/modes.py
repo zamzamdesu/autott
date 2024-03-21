@@ -403,7 +403,7 @@ def _extended_test(config, path):
 
         if check['level'] == 1:
             logging.warning(check['result_comment'])
-        else:
+        elif check['level'] == 2:
             errors += f"\t- {check['result_comment']}\n"
     
     if len(errors) > 0:
