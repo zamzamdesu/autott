@@ -17,6 +17,10 @@ import download
 from transcode import Transcode, NamingException, Resample
 from tracker import Format, Tracker, TrackerException, MEDIA
 
+_EXTENDED_VALIDATION_DOWNGRADE = [
+    'Title of album (as found in the tags of the first track) is not in the folder name'
+]
+
 class ValidateException(Exception):
     pass
 
@@ -401,7 +405,7 @@ def _extended_test(config, path):
         if check['result'] == 0:
             continue
 
-        if check['level'] == 1:
+        if check['level'] == 1 or check['result_comment'] in _EXTENDED_VALIDATION_DOWNGRADE:
             logging.warning(check['result_comment'])
         elif check['level'] == 2:
             errors += f"\t- {check['result_comment']}\n"
