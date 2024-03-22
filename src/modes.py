@@ -405,7 +405,7 @@ def _extended_test(config, path):
         if check['result'] == 0:
             continue
 
-        if check['level'] == 1 or check['result_comment'] in _EXTENDED_VALIDATION_DOWNGRADE:
+        if check['level'] == 1 or any(s in check['result_comment'] for s in _EXTENDED_VALIDATION_DOWNGRADE):
             logging.warning(check['result_comment'])
         elif check['level'] == 2:
             errors += f"\t- {check['result_comment']}\n"
