@@ -129,13 +129,13 @@ def _build_transcode_group(processing, tracker, group_id, torrent_id, config):
 
     logging.info(f"Preparing: {torrent_name}")
 
-    _extended_test(config, source_dir)
-
     try:
         transcode = _prepare_transcode(group, torrent, config.spec_dir, source_dir, config.output_dir, needed_formats)
     except:
         _error_check_retry(config, group, torrent, f"Failed to prepare transcode: {torrent_name}")
         raise
+
+    _extended_test(config, source_dir)
 
     description=f"Transcoded from {tracker.get_url(group_id, torrent_id)}"
 
