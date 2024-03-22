@@ -1,7 +1,5 @@
 import logging
 import shutil
-import subprocess
-import json
 
 from collections import namedtuple
 from typing import List
@@ -9,20 +7,13 @@ from dateutil.parser import isoparse
 from itertools import groupby, chain
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from subprocess import CalledProcessError
 
 import music
 import download
+import validation
 
 from transcode import Transcode, NamingException, Resample
 from tracker import Format, Tracker, TrackerException, MEDIA
-
-_EXTENDED_VALIDATION_DOWNGRADE = [
-    'Title of album (as found in the tags of the first track) is not in the folder name'
-]
-
-class ValidateException(Exception):
-    pass
 
 TranscodeGroup = namedtuple('TranscodeGroup', 'name group torrent transcode description')
 
@@ -135,7 +126,7 @@ def _build_transcode_group(processing, tracker, group_id, torrent_id, config):
         _error_check_retry(config, group, torrent, f"Failed to prepare transcode: {torrent_name}")
         raise
 
-    _extended_test(config, source_dir)
+    validation.extended_test(config, source_dir)
 
     description=f"Transcoded from {tracker.get_url(group_id, torrent_id)}"
 
@@ -370,7 +361,7 @@ def _test_tracks(config):
     for dir in config.folder:
         logging.info(f"Testing: {dir}")
 
-        _extended_test(config, dir)
+        validation.extended_test(config, dir)
 
         transcode = Transcode(dir, config.spec_dir, {})
 
@@ -380,41 +371,6 @@ def _test_tracks(config):
             logging.info(f"Validation successful! Global resample: {transcode.global_resample.name}")
 
         yield from transcode.tracks
-
-def _extended_test(config, path):
-    if config.extended_validator is None:
-        return
-    
-    try:
-        raw = subprocess.check_output(args=[config.extended_validator] + config.extended_validator_args + [path], stderr=subprocess.STDOUT, text=True)
-    except CalledProcessError as e:
-        raise ValidateException(f"Extended validator failed with code {e.returncode}:\n{e.output}", e)
-
-    # Hack as JSON is mixed on stdout with an initial log message
-    if raw[0] != '{':
-        raw = raw[raw.index('{'):]
-
-    try:
-        analysis = json.loads(raw)
-    except Exception as e:
-        raise ValidateException(f"Extended validation output is invalid:\n\n{raw}", e)
-
-    errors = ""
-
-    for check in analysis['checks']:
-        if check['result'] == 0:
-            continue
-
-        if check['level'] == 1 or any(s in check['result_comment'] for s in _EXTENDED_VALIDATION_DOWNGRADE):
-            logging.warning(check['result_comment'])
-        elif check['level'] == 2:
-            errors += f"\t- {check['result_comment']}\n"
-    
-    if len(errors) > 0:
-        logging.error(f"Validation failed:\n{errors}")
-
-        if input("Ignore (y/n)? ") != 'y':
-            raise ValidateException(f"Extended validation failed!")
 
 def test(config):
     try:
