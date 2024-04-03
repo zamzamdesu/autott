@@ -126,7 +126,11 @@ def _build_transcode_group(processing, tracker, group_id, torrent_id, config):
         _error_check_retry(config, group, torrent, f"Failed to prepare transcode: {torrent_name}")
         raise
 
-    validation.extended_test(config, source_dir)
+    try:
+        validation.extended_test(config, source_dir)
+    except validation.ValidateException as e:
+        _error_check_retry(config, group, torrent, f"Extended validation failed: {torrent_name}\n{e}")
+        return
 
     description=f"Transcoded from {tracker.get_url(group_id, torrent_id)}"
 
