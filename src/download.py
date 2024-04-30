@@ -1,4 +1,4 @@
-import logging
+from loguru import logger
 import re
 import string
 import random
@@ -108,8 +108,8 @@ def _download(torrents: Iterable[int], tracker: Tracker, fl_tokens: int, watch_d
         else:
             downloads.append(torrent)
 
-    logging.info(f"Total FL tokens: {len(fl_downloads)}")
-    logging.info(f"Total downloads: {format_size(reduce(lambda s, t: s + t['size'], downloads, 9))}")
+    logger.info(f"Total FL tokens: {len(fl_downloads)}")
+    logger.info(f"Total downloads: {format_size(reduce(lambda s, t: s + t['size'], downloads, 9))}")
 
     if input("Continue? (y/n) ") != 'y':
         return

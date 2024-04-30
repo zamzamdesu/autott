@@ -1,4 +1,3 @@
-import logging
 import shutil
 
 from collections import namedtuple
@@ -7,6 +6,7 @@ from dateutil.parser import isoparse
 from itertools import groupby, chain
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from loguru import logger
 
 import music
 import download
@@ -118,7 +118,7 @@ def _build_transcode_group(processing, tracker, group_id, torrent_id, config):
         _error_check_retry(config, group, torrent, f"Source folder does not exist ({source_dir}): {torrent_name}")
         return
 
-    logging.info(f"Preparing: {torrent_name}")
+    logger.info(f"Preparing: {torrent_name}")
 
     try:
         transcode = _prepare_transcode(group, torrent, config.spec_dir, source_dir, config.output_dir, needed_formats)
@@ -140,7 +140,7 @@ def _build_transcode_group(processing, tracker, group_id, torrent_id, config):
             return
     else:
         if format != Format.FLAC_24:
-            logging.warning(f"Source files are actually 24-bit: {torrent_name}")
+            logger.warning(f"Source files are actually 24-bit: {torrent_name}")
 
             needed_formats.add(Format.FLAC_16)
 
@@ -151,7 +151,7 @@ def _build_transcode_group(processing, tracker, group_id, torrent_id, config):
                 raise
 
         if transcode.global_resample is None:
-            logging.warning(f"Source files have inconsistent sample: {torrent_name}")
+            logger.warning(f"Source files have inconsistent sample: {torrent_name}")
 
             description += "\nSource files have varying sampling rate"
             some_not_resampled = False
@@ -172,7 +172,7 @@ def _build_transcode_group(processing, tracker, group_id, torrent_id, config):
             description += f"\nAll tracks were resampled to 16-bit ({transcode.global_resample.value} Hz)"
 
     if transcode.valid_logs > 0:
-        logging.info(f"Logs are valid: {torrent_name}")
+        logger.info(f"Logs are valid: {torrent_name}")
 
         description += f"\nLog checksum was valid"
 
@@ -189,12 +189,12 @@ def _build_transcode_remove_prompt(transcode_groups):
     return prompt + "\nSelect transcode to drop (empty to continue): "
 
 def transcode_local(config):
-    logging.info("Preparing and validating transcode...")
+    logger.info("Preparing and validating transcode...")
 
     transcode = Transcode(config.input, config.spec_dir, {config.format: config.output})
 
     if next(config.spec_dir.iterdir(), None) is not None:
-        logging.info("Generating spectrograms report...")
+        logger.info("Generating spectrograms report...")
 
         music.generate_spectrogram_report(config.spec_template, config.spec_report, 
             (track.spectrogram for track in transcode.tracks))
@@ -202,14 +202,14 @@ def transcode_local(config):
         if input(f"Spectrogram report generated at {config.spec_report}. Continue (y/n)? ") != 'y':
             return 1
         
-    logging.info("Transcoding...")
+    logger.info("Transcoding...")
 
     try:
         transcode.execute()
 
-        logging.info(f"Transcode successful into: {config.output}")
+        logger.info(f"Transcode successful into: {config.output}")
     except:
-        logging.exception("Trancode failed!")
+        logger.exception("Trancode failed!")
 
         return 1
 
@@ -217,14 +217,14 @@ def transcode_local(config):
 
 def transcode_online(config):
     if config.release_urls:
-        logging.warning("Transcode of specific releases: allowed media and cutoff for recent torrents ignored!")
+        logger.warning("Transcode of specific releases: allowed media and cutoff for recent torrents ignored!")
 
         config.created_cutoff = None
         config.allowed_media = MEDIA.keys()
         config.batch = None
 
     if config.allowed_media is None or len(config.allowed_media) == 0:
-        logging.error("No media allowed, cannot continue")
+        logger.error("No media allowed, cannot continue")
 
         return 1
 
@@ -232,20 +232,20 @@ def transcode_online(config):
         if config.release_urls:
             candidates = (tracker.parse_url(url) for url in config.release_urls)
         else:
-            logging.info("Searching for transcode candidates in seeding torrents...")
+            logger.info("Searching for transcode candidates in seeding torrents...")
 
             candidates = chain(config.cache.get_cached(config.created_cutoff), tracker.get_user_torrents('seeding'))
 
         transcode_groups: List[TranscodeGroup] = []
 
-        logging.info("Preparing and validating transcodes...")
+        logger.info("Preparing and validating transcodes...")
 
         processing = set()
         
         for group_id, torrent_id in candidates:
             try:
                 if not config.cache.should_try(torrent_id, config.created_cutoff):
-                    logging.debug(f"Ignored by cache: {torrent_id}")
+                    logger.debug(f"Ignored by cache: {torrent_id}")
 
                     continue
 
@@ -257,20 +257,20 @@ def transcode_online(config):
                 transcode_groups.append(transcode_group)
 
                 if config.batch is not None:        
-                    logging.info(f"Transcode {len(processing)}/{config.batch}: {transcode_group.name}")
+                    logger.info(f"Transcode {len(processing)}/{config.batch}: {transcode_group.name}")
 
                     if len(processing) == config.batch:
                         break
                     
                 else:
-                    logging.info(f"Transcode #{len(processing)}: {transcode_group.name}")
+                    logger.info(f"Transcode #{len(processing)}: {transcode_group.name}")
             except (KeyboardInterrupt, TrackerException):
                 raise
             except:
-                logging.exception(f"Unhandled error with: {tracker.get_url(group_id, torrent_id)}")
+                logger.exception(f"Unhandled error with: {tracker.get_url(group_id, torrent_id)}")
                     
         if next(config.spec_dir.iterdir(), None) is not None:
-            logging.info("Generating spectrograms report...")
+            logger.info("Generating spectrograms report...")
 
             music.generate_spectrogram_report(config.spec_template, config.spec_report, 
                 (track.spectrogram for transcode_group in transcode_groups for track in transcode_group.transcode.tracks))
@@ -294,7 +294,7 @@ def transcode_online(config):
 
                     break
 
-    logging.info("Transcoding...")
+    logger.info("Transcoding...")
 
     # (ignore_cleanup_errors=True) for Python 3.10+
     with TemporaryDirectory() as root:
@@ -302,7 +302,7 @@ def transcode_online(config):
             try:
                 transcode_group.transcode.execute()
 
-                logging.info(f"Transcode successful: {transcode_group.name}")
+                logger.info(f"Transcode successful: {transcode_group.name}")
             except:
                 _error_check_retry(config, transcode_group.group, transcode_group.torrent, f"Transcode failed: {transcode_group.name}")
 
@@ -316,7 +316,7 @@ def transcode_online(config):
 
                     shutil.move(tmp_torrent, config.torrent_dir / tmp_torrent.relative_to(root))
 
-                logging.info(f"Upload successful: {transcode_group.name}")
+                logger.info(f"Upload successful: {transcode_group.name}")
 
                 config.cache.complete(transcode_group.group['id'], transcode_group.torrent['id'])
             except:
@@ -325,12 +325,12 @@ def transcode_online(config):
                 transcode_group.transcode.cancel()
                 continue
 
-    logging.info("Completed!")
+    logger.info("Completed!")
 
     return 0
 
 def _cache_show_entry(config, id: int):
-    logging.info(f"Entry {id}: {config.cache.items.get(id)}")
+    logger.info(f"Entry {id}: {config.cache.items.get(id)}")
 
 def cache_show(config):
     if len(config.type) == 0 or 'errors' in config.type:
@@ -349,12 +349,12 @@ def cache_show(config):
 
 def cache_clear(config):
     if 'errors' in config.type:
-        logging.info("Clearing errors from cache...")
+        logger.info("Clearing errors from cache...")
         config.cache.clear(errors=True)
 
     for type in config.type:
         if type.isdecimal():
-            logging.info(f"Clearing error {type} from cache...")
+            logger.info(f"Clearing error {type} from cache...")
             config.cache.clear(id=int(type))
         elif type != 'errors':
             raise ValueError(f"Invalid type: {type}")
@@ -363,16 +363,16 @@ def cache_clear(config):
 
 def _test_tracks(config):
     for dir in config.folder:
-        logging.info(f"Testing: {dir}")
+        logger.info(f"Testing: {dir}")
 
         validation.extended_test(config, dir)
 
         transcode = Transcode(dir, config.spec_dir, {})
 
         if transcode.global_resample is None:
-            logging.info(f"Validation successful! Mixed resample required!")
+            logger.info(f"Validation successful! Mixed resample required!")
         else:
-            logging.info(f"Validation successful! Global resample: {transcode.global_resample.name}")
+            logger.info(f"Validation successful! Global resample: {transcode.global_resample.name}")
 
         yield from transcode.tracks
 
@@ -381,7 +381,7 @@ def test(config):
         tracks = list(_test_tracks(config))
 
         if next(config.spec_dir.iterdir(), None) is not None:
-            logging.info("Generating spectrograms report...")
+            logger.info("Generating spectrograms report...")
 
             music.generate_spectrogram_report(config.spec_template, config.spec_report, 
                 (track.spectrogram for track in tracks))
@@ -390,7 +390,7 @@ def test(config):
 
         return 0
     except:
-        logging.exception("Track validation failed!")
+        logger.exception("Track validation failed!")
         return 1
     
 def download_list(config):

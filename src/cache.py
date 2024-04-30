@@ -1,6 +1,6 @@
 import pickle
-import logging
 
+from loguru import logger
 from pathlib import Path
 from collections import namedtuple
 
@@ -30,19 +30,19 @@ class Cache:
         self._save()
 
     def bad(self, group_id: int, torrent_id: int, error: str):
-        logging.debug(error)
+        logger.debug(error)
 
         self.items[torrent_id] = CacheEntry(group_id, error, False, None)
         self._save()
 
     def error(self, group_id: int, torrent_id: int, error: str, retry_callback = lambda: True):
-        logging.exception(error)
+        logger.exception(error)
 
         self.items[torrent_id] = CacheEntry(group_id, error, retry_callback(), None)
         self._save()
 
     def retry(self, group_id: int, torrent_id: int, created, error: str):
-        logging.debug(error)
+        logger.debug(error)
 
         self.items[torrent_id] = CacheEntry(group_id, error, True, created)
         self._save()

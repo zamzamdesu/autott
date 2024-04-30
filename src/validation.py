@@ -1,7 +1,7 @@
 import subprocess
 import json
-import logging
 
+from loguru import logger
 from subprocess import CalledProcessError
 
 _EXTENDED_VALIDATION_IGNORE = [
@@ -45,12 +45,12 @@ def extended_test(config, path):
             continue
 
         if check['level'] == 1 or any(s in check['result_comment'] for s in _EXTENDED_VALIDATION_WARNING):
-            logging.warning(check['result_comment'])
+            logger.warning(check['result_comment'])
         elif check['level'] == 2:
             errors += f"\t- {check['result_comment']}\n"
     
     if len(errors) > 0:
-        logging.error(f"Validation failed:\n{errors}")
+        logger.error(f"Validation failed:\n{errors}")
 
         if input("Ignore (y/n)? ") != 'y':
             raise ValidateException(f"Extended validation failed!")

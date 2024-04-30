@@ -2,9 +2,9 @@
 import re
 import subprocess
 import requests
-import logging
 import html
 
+from loguru import logger
 from urllib.parse import urljoin
 from pathlib import Path
 from enum import Enum
@@ -105,7 +105,7 @@ class Tracker:
         self._user_id = json['id']
         self._announce = announce.format(json['passkey'])
 
-        logging.info(f"Logged-in successfully to {self._endpoint} as {json['username']}")
+        logger.info(f"Logged-in successfully to {self._endpoint} as {json['username']}")
 
     def __enter__(self):
         return self
@@ -275,7 +275,7 @@ class Tracker:
         other_torrents = list(filter(lambda t: all(t[attr] == torrent[attr] for attr in _GROUPING_ATTRIBUTES), other_torrents))
 
         if any(t['trumpable'] or t['reported'] for t in other_torrents):
-            logging.warning(f"Torrent group {group['id']} has reported or trumpable formats!")
+            logger.warning(f"Torrent group {group['id']} has reported or trumpable formats!")
 
         available_formats = set(Format.from_encoding(t['encoding']) for t in other_torrents if not t['trumpable'] and not t['reported'])
 

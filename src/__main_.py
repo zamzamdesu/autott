@@ -1,10 +1,10 @@
 
 import configparser
 import argparse
-import logging
 import contextlib
 import sys
 
+from loguru import logger
 from typing import Union, NamedTuple
 from datetime import datetime, timedelta
 from types import SimpleNamespace
@@ -17,7 +17,7 @@ from transcode import Transcode
 from tracker import Format
 from cache import Cache
 
-_LOG_FORMAT = '%(asctime)s %(levelname)s %(message)s'
+_LOG_FORMAT = "<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | <level>{level}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>"
 _ROOT_FOLDER = Path(sys.argv[0]).parent.parent.resolve(True)
 
 class TranscodeGroup(NamedTuple):
@@ -155,7 +155,9 @@ def main() -> int:
         print("Missing command", file=sys.stderr)
         return 1
 
-    logging.basicConfig(format=_LOG_FORMAT, level=logging.DEBUG if config.verbose >= 1 else logging.INFO)
+    logger.remove()
+    logger.add(sys.stderr, level="INFO" if config.verbose == 0 else "DEBUG",
+               format=_LOG_FORMAT,)
 
     Transcode.max_workers = config.parallel
     Transcode.file_renamer = _unique_file_override

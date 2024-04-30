@@ -2,8 +2,8 @@ import re
 import os
 import shutil
 import subprocess
-import logging
 
+from loguru import logger
 from typing import List, Mapping, NamedTuple, Union
 from enum import Enum
 from pathlib import Path
@@ -58,7 +58,7 @@ def _check_valid_path(dir: Path, file: Path, strict=True):
         if strict:
             raise NamingException(err)
         else:
-            logging.warning(err)
+            logger.warning(err)
 
     if HTML_ENCODE.search(path) is not None:
         err = f"Path '{path}' has invalid characters"
@@ -66,7 +66,7 @@ def _check_valid_path(dir: Path, file: Path, strict=True):
         if strict:
             raise NamingException(err)
         else:
-            logging.warning(err)
+            logger.warning(err)
 
     return file
 
@@ -103,13 +103,13 @@ def _transcode_one(transcoder: str, track: Track, transcoded: TranscodedTrack):
             args.append(str(track.resample.value))
 
         if transcoded.output_format == Format.FLAC_16 and track.resample == Resample.KEEP:
-            logging.warning(f"Source file is already 16-bit and will be copied as-is: {track.input}")
+            logger.warning(f"Source file is already 16-bit and will be copied as-is: {track.input}")
 
             shutil.copyfile(track.input, transcoded.output)
 
             result = None
         else:
-            logging.debug(f'Transcoding to "{transcoded.output}" as {transcoded.output_format.name} ({track.resample.name} resample)...')
+            logger.debug(f'Transcoding to "{transcoded.output}" as {transcoded.output_format.name} ({track.resample.name} resample)...')
         
             result = subprocess.check_output(args=args, stderr=subprocess.STDOUT, text=True, timeout=TRANSCODE_TIMEOUT)
 
@@ -197,7 +197,7 @@ class Transcode:
         total_size = sum(f.stat().st_size for f in files)
 
         if total_size > ADD_FILES_MAX_SIZE:
-            logging.warning(f"Additional files are large: {format_size(total_size)}")
+            logger.warning(f"Additional files are large: {format_size(total_size)}")
 
         for file in files:
             stem = file.stem
@@ -217,7 +217,7 @@ class Transcode:
                     stem = Transcode.file_renamer(file.name)
 
                     if stem is None:
-                        logging.warning("No specific file rename provider, base folder will be renamed instead!")
+                        logger.warning("No specific file rename provider, base folder will be renamed instead!")
 
                         raise
 
@@ -279,12 +279,12 @@ class Transcode:
             shutil.rmtree(output_dir, ignore_errors=True)
 
     def execute(self):
-        logging.debug(f"Transcoding {len(self.tracks)} files to {', '.join(map(str, self.outputs.values()))}")
+        logger.debug(f"Transcoding {len(self.tracks)} files to {', '.join(map(str, self.outputs.values()))}")
 
         try:
             self._transcode_parallel()
 
-            logging.debug(f"Transcode completed! Hard linking additional files...")
+            logger.debug(f"Transcode completed! Hard linking additional files...")
 
             for input, output in self.additional_files:
                 output.parent.mkdir(exist_ok=True, parents=True)

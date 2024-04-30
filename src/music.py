@@ -1,10 +1,10 @@
 import re
-import logging
 import subprocess
 import mutagen
 import mutagen.flac
 import mutagen.mp3
 
+from loguru import logger
 from typing import Iterable
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from pathlib import Path
@@ -80,7 +80,7 @@ def check_tags(fd, check_tracknumber_format=True):
         if check_tracknumber_format:
             raise TaggingException(f'File has a malformed tracknumber tag "{tracknumber}"')
         else:
-            logging.warning(f'File has a malformed tracknumber tag "{tracknumber}"')
+            logger.warning(f'File has a malformed tracknumber tag "{tracknumber}"')
 
 def copy_tags(src: Path, dst: Path):
     flac_info = mutagen.flac.FLAC(src)
