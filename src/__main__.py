@@ -18,7 +18,7 @@ from tracker import Format
 from cache import Cache
 
 _LOG_FORMAT = "<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | <level>{level}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>"
-_ROOT_FOLDER = Path(sys.argv[0]).parent.parent.resolve(True)
+_ROOT_FOLDER = Path(sys.argv[0]).resolve(True).parent
 
 class TranscodeGroup(NamedTuple):
     name: str
@@ -122,7 +122,7 @@ def _build_config():
         torrent_dir=_expand_path(config_root, section.get('torrent_dir')),
         transcoder=_expand_path(config_root, section.get('transcoder')),
         extended_validator=_expand_path(config_root, section.get('extended_validator')),
-        extended_validator_args=section.get('extended_validator_args').split(' '),
+        extended_validator_args=section.get('extended_validator_args', '').split(' '),
         allowed_formats=set(getattr(Format, f) for f in section['formats'].split(',')),
         allowed_media=set(section['media'].split(',')),
         created_cutoff=datetime.now() - timedelta(days=int(section['min_days'])) if 'min_days' in section else None,
@@ -150,7 +150,7 @@ def _build_config():
 
 def main() -> int:
     config = _build_config()
-   
+
     if config.run is None:
         print("Missing command", file=sys.stderr)
         return 1
@@ -169,4 +169,9 @@ def main() -> int:
         return config.run(config)
 
 if __name__ == "__main__":
-    sys.exit(main())
+    try:
+        ret = main()
+    except:
+        logger.exception("Fatal error!")
+
+    sys.exit(ret)
