@@ -155,8 +155,11 @@ def _check_logs(input_dir: Path):
     valid_logs = 0
 
     for log in _find_by_extension(input_dir, '.log', ignore_case=True):
-        if log_checker.check_log(log):
-            valid_logs += 1
+        try:
+            if log_checker.check_log(log):
+                valid_logs += 1
+        except:
+            logger.exception(f"Failed to check log!: {log}")
 
     return valid_logs
 
